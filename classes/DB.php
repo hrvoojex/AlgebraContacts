@@ -191,6 +191,9 @@ class DB{
         return $this->count;
     }
 
+    public function getFirst(){
+        return $this->results[0];
+    }
 }
 
 ?>
