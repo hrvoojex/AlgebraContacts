@@ -67,27 +67,58 @@ class DB{
     }
 
     private function action($action, $table, $where = array()){
-        if (count($where) === 3) {
-            $operators = array('=', '<', '>', '<=', '>=');
-
+        if (count ($where) === 3) {
+            $operators = array('=','<','>','<=','>=');
             $field = $where[0];
             $operator = $where[1];
             $value = $where[2];
-
-            if (in_array($operator, $operators)) {
+            if (in_array($operator,$operators)) {
                 $sql = "$action FROM $table WHERE $field $operator ?";
-
-                if (!$this->query($sql, array($value))->getError()) {
+                if (!$this->query($sql,array($value))->getError()) {
                     return $this;
+                    }
                 }
             }
-        } else {
-            $sql = "$action FROM $table";
-
-            if (!$this->query($sql)->getError()) {
+            
+        else if (((count($where) - 3) % 4 === 0)) {
+            $operators = array('=','<','>','<=','>=','!=');
+            $options = array('AND','OR');
+            foreach ($where as $key => $values) {
+                if ($key === 0 OR (($key % 4) === 0)) {
+                    $field[] = $values;
+                    }
+                else if ($key === 1 OR ((($key - 1) % 4) === 0)) {
+                    $operator[] = $values;
+                    }
+                else if ($key === 2 OR ((($key - 2) % 4) === 0)) {
+                    $valueles[] = $values;
+                    }
+                else if ($key === 3 OR ((($key - 3) % 4) === 0)) {
+                    $option[] = $values;
+                    }		
+                }
+            $sql = "$action FROM $table WHERE ";
+            foreach ($operator as $key => $value) {
+                if (in_array($value,$operators)) {
+                    if ($key < count($operator) - 1 AND in_array($option[$key],$options)) {
+                        $sql .= "$field[$key] $operator[$key] ? $option[$key] ";
+                        }
+                    else {
+                        $sql .= "$field[$key] $operator[$key] ?";
+                        }	
+                    }
+                }
+            if (!$this->query($sql,$valueles)->getError()) {
                 return $this;
+                }
             }
-        }
+            
+        else {
+            $sql = "$action FROM $table";
+            if  (!$this->query($sql)->getError()) {
+                return $this;
+                }
+            }	
         return false;
     }
 
@@ -126,7 +157,22 @@ class DB{
     }
 
     public function update($table, $id, $fields){
-
+        $field_num = count($fields);
+        $values = '';
+        $x = 1;
+        foreach ($fields as $key => $field) {
+            $values .= "$key = ?";
+            if ($x < $field_num) {
+                $values .= ',';
+            }
+            $x++;
+        }
+        
+        $sql = "UPDATE $table SET $values WHERE id = $id";
+        if (!$this->query($sql, $fields)->getError()) {
+            return $this;
+        }
+        return false;
     }
 
     public function getError(){

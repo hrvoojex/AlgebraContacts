@@ -27,7 +27,6 @@ Helper::getHeader('Algebra Contacts', 'main-header');
 
 $db = DB::getInstance();
 
-
 $get = $db->get('*','users');
 
 //$find = $db->find(5, 'users');
@@ -38,16 +37,17 @@ $update = $db->update('users', 5,[
 	'name' 		=> 'Ivan'
 ]);
 
-$insert = $db->insert('users',[
+/* $insert = $db->insert('users',[
 	'name'		=> 'Iva',
-	'username'	=> 'iva',
-	'password'	=> 'q12432543',
+	'username'	=> 'iiva',
+	'password'	=> 'q12432df543',
 	'salt'		=> '5468354',
 	'role_id'	=> '1'
-]);
+]); */
+
 
 echo '<pre>';
-var_dump($insert);
+var_dump($update);
 
 
 Helper::getFooter();
