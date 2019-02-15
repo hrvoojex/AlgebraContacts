@@ -43,6 +43,14 @@ class Validation{
                                 $this->addError($item, "Field $item must match $rule_value.");
                             }
                             break;
+                        case 'password_condition':
+                            $isLowercase = preg_match('/[a-z]/',$value);
+                            $isUpercase = preg_match('/[A-Z]/',$value);
+                            $isNumber = preg_match('/[0-9]/',$value);
+                            if (!($isLowercase && $isUpercase && $isNumber)) {
+                                $this->addError($item,"Field $item must have numbers and lowercase and uppercase letters ");
+                                }
+                            break;
                     }
                 }                
             }
