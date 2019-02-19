@@ -4,37 +4,57 @@ require_once 'core/init.php';
 
 Helper::getHeader('Algebra Contacts', 'main-header');
 
+$user = new User();
+
 $validation = new Validation();
 
 if(Input::exists()){
-    
-    $validate = $validation->check([
-        'name'            => [
-            'required'  => true,
-            'min'       => 2,
-            'max'       => 25
-        ],
-        'username'       => [
-            'required'  => true,
-            'min'       => 2,
-            'max'       => 25,
-            'unique'    => 'users'
-        ],
-        'password'       => [
-            'required'  => true,
-            'min'       => 3
-           // 'password_condition' => true
-        ],
-        'confirm_password'  => [
-            'required'  => true,
-            'matches'   => 'password'
-        ]
-    ]);
+    if (Token::factory()->check(Input::get('token'))) {
+        $validate = $validation->check([
+            'name'            => [
+                'required'  => true,
+                'min'       => 2,
+                'max'       => 25
+            ],
+            'username'       => [
+                'required'  => true,
+                'min'       => 2,
+                'max'       => 25,
+                'unique'    => 'users'
+            ],
+            'password'       => [
+                'required'  => true,
+                'min'       => 3
+            // 'password_condition' => true
+            ],
+            'confirm_password'  => [
+                'required'  => true,
+                'matches'   => 'password'
+            ]
+        ]);
+    }
 
     if ($validate->passed()) {
+        
+        $salt = Hash::salt(32);
+        $password = Hash::make(Input::get('password'), $salt);
+
+        try {
+            $user->create([
+                'name'      => Input::get('name'),
+                'username'  => Input::get('username'),
+                'password'  => $password,
+                'salt'      => $salt,
+                'role_id'   => 1
+            ]);
+        } catch (Exception $e) {
+            Session::flash('danger', $e->getMessage());
+            Redirect::to('register');
+            return false;
+        }
+        
         Session::flash('success', "You have registerd successfuly");
-        header('Location:login.php');
-        exit();
+        Redirect::to('login');
     }
 }
 
@@ -49,8 +69,7 @@ if(Input::exists()){
             </div>
             <div class="panel-body">
                 <form method="POST">
-                <input type="hidden">
-                <!-- implementirati taj csrf token -->
+                    <input type="hidden" name="token" value="<?php echo Token::factory()::generate(); ?>">
                     <div class="form-group <?php echo ($validation->hasError('name')) ? 'has-error' : '' ; ?>">
                         <label for="name" class="control-label">Name*</label>
                         <input type="text" class="form-control" id="name" name="name" placeholder="Enter your name" value="<?php echo Input::get('name') ?>">
