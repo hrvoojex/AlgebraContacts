@@ -18,8 +18,6 @@ class User{
 
             if($this->find($user)){
                 $this->isLoggedIn = true;
-            }else{
-                // logout
             }
         } 
     }
@@ -28,31 +26,45 @@ class User{
         if(!$this->db->insert('users', $fields)){
             throw new Exception("There was a problem creating an account");
         }
-
     }
 
-    public function find($userId){
-        if ($userId) {
-            $field = (is_numeric($userId)) ? 'id' : 'username';
-            $data = $this->db->get('*', 'users', [$field, '=', $userId]);
+    public function find($userIdentification){
+        if ($userIdentification) {
+            $field = (is_numeric($userIdentification)) ? 'id' : 'username';
+            $userData = $this->db->get('*', 'users', [$field, '=', $userIdentification]);
 
-            if ($data->count()) {
-                $this->data = $data->first();
+            if ($userData->getCount()) {
+                $this->data = $userData->getFirst();
                 return true;
             }
         }
         return false;
     }
 
-    public function login($username = null, $password = null){
+    public function login($username, $password){
 
+        $user = $this->find($username);
+
+        if ($user) {
+                //     password iz baze === Heširan password
+            if ($this->data()->password === Hash::make($password, $this->data()->salt)) {
+                Session::put($this->session_name , $this->data()->id);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public function logout(){
+        Session::delete($this->session_name);
+        session_destroy();
     }
 
     public function data(){
         return $this->data;
     }
 
-    public function chech(){
+    public function check(){
         return $this->isLoggedIn;
     }
 }

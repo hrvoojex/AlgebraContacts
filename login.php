@@ -2,6 +2,37 @@
 
 require_once 'core/init.php';
 
+$user = new User();
+if($user->check()){
+    Redirect::to('dashboard');
+}
+
+$validation = new Validation();
+
+if(Input::exists()){
+    if (Token::factory()->check(Input::get('token'))) {
+        $validation = $validation->check([
+            'username' => ['required'  => true],
+            'password' => ['required'  => true]
+        ]);
+
+        if ($validation->passed()) {
+
+            $username = Input::get('username');
+            $password = Input::get('password');
+
+            $login = $user->login($username, $password);
+
+            if ($login) {
+                Redirect::to('dashboard');
+            } else {
+                Session::flash('danger', 'Login failed, Please try again later.');
+                Redirect::to('login');
+            }
+        }
+    }
+}
+
 Helper::getHeader('Algebra Contacts', 'main-header');
 
 require 'notifications.php';
@@ -16,13 +47,16 @@ require 'notifications.php';
             </div>
             <div class="panel-body">
                 <form method="post">
-                    <div class="form-group">
+                    <input type="hidden" name="token" value="<?php echo Token::factory()::generate(); ?>">
+                    <div class="form-group <?php echo ($validation->hasError('username')) ? 'has-error':''; ?>">
                         <label for="username">Username</label>
                         <input type="text" class="form-control" id="username" name="username" placeholder="Username" autofocus>
+                        <?php echo ($validation->hasError('username')) ? '<p class="text-danger">'.$validation->hasError('username').'</p>' :''; ?>
                     </div>
-                    <div class="form-group">
+                    <div class="form-group <?php echo ($validation->hasError('password')) ? 'has-error':''; ?>">
                         <label for="password">Password</label>
                         <input type="password" class="form-control" id="password" name="password" placeholder="Password">
+                        <?php echo ($validation->hasError('password')) ? '<p class="text-danger">'.$validation->hasError('password').'</p>' :''; ?>
                     </div>
                     <div class="form-group">
                         <button type="submit" class="btn btn-primary">Sign In</button>
