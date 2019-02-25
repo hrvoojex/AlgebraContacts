@@ -45,7 +45,7 @@ if(Input::exists()){
         try {
             $user->create([
                 'name'      => Input::get('name'),
-                'username'  => Input::get('username'),
+                'username'  => strtolower(Input::get('username')), 
                 'password'  => $password,
                 'salt'      => $salt,
                 'role_id'   => 1

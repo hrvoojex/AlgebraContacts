@@ -18,10 +18,11 @@ if(Input::exists()){
 
         if ($validation->passed()) {
 
-            $username = Input::get('username');
+            $username = strtolower(Input::get('username'));
             $password = Input::get('password');
+            $remember = (bool)Input::get('remember');
 
-            $login = $user->login($username, $password);
+            $login = $user->login($username, $password, $remember);
 
             if ($login) {
                 Redirect::to('dashboard');
@@ -57,6 +58,11 @@ require 'notifications.php';
                         <label for="password">Password</label>
                         <input type="password" class="form-control" id="password" name="password" placeholder="Password">
                         <?php echo ($validation->hasError('password')) ? '<p class="text-danger">'.$validation->hasError('password').'</p>' :''; ?>
+                    </div>
+                    <div class="checkbox">
+                        <label for="remember">
+                            <input type="checkbox" id="remember" name="remember" value="true"> Remember me
+                        </label>
                     </div>
                     <div class="form-group">
                         <button type="submit" class="btn btn-primary">Sign In</button>
